@@ -61,3 +61,4 @@ import Cslib.Logics.LinearLogic.CLL.Basic
 import Cslib.Logics.LinearLogic.CLL.CutElimination
 import Cslib.Logics.LinearLogic.CLL.MProof
 import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
+import Cslib.Examples.GrindFunextMinimal
