@@ -128,6 +128,19 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   fi
 fi
 
+# Merging `main` may have changed `lakefile.toml` (e.g. added a dependency), so bring
+# `lake-manifest.json` in line with it. Skip this while conflicts remain: a commit would
+# fail anyway, and the user resolves things by hand below.
+if ! git diff --name-only --diff-filter=U | grep -q .; then
+  echo
+  echo "### [auto] run 'lake update' so that 'lake-manifest.json' matches the merged 'lakefile.toml'"
+  lake update
+  if ! git diff --quiet -- lake-manifest.json; then
+    git add lake-manifest.json
+    git commit -m "Update lake-manifest.json after merging main"
+  fi
+fi
+
 if git diff --name-only --diff-filter=U | grep -q . || ! git diff-index --quiet HEAD --; then
   if [ "$AUTO" = "yes" ]; then
     echo "Auto mode enabled. Bailing out due to unresolved conflicts or uncommitted changes."
