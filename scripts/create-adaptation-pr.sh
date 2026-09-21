@@ -107,10 +107,24 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   git checkout bump/"$BUMPVERSION" -- lean-toolchain lake-manifest.json
   git add lean-toolchain lake-manifest.json
 
+  # The bump branch's Mathlib pin points to `mathlib4-nightly-testing`. If `main` moves
+  # its pin, the `[[require]]` block may conflict. Check for and resolve conflicts using
+  # hunks, preferring the bump branch, but keep any non-conflicting changes coming from
+  # `main`.
+  if git diff --name-only --diff-filter=U | grep -qx lakefile.toml; then
+    echo "### Resolving conflicts in 'lakefile.toml' in favor of 'bump/$BUMPVERSION'"
+    git show :1:lakefile.toml > lakefile.toml.base
+    git show :3:lakefile.toml > lakefile.toml.main
+    git checkout --ours -- lakefile.toml
+    git merge-file --ours lakefile.toml lakefile.toml.base lakefile.toml.main
+    rm lakefile.toml.base lakefile.toml.main
+    git add lakefile.toml
+  fi
+
   # Check if there are more merge conflicts after auto-resolution
   if ! git diff --name-only --diff-filter=U | grep -q .; then
     # Auto-commit the resolved conflicts if no other conflicts remain
-    git commit -m "Auto-resolved conflicts in lean-toolchain and lake-manifest.json"
+    git commit -m "Auto-resolved conflicts in lean-toolchain, lake-manifest.json, and lakefile.toml"
   fi
 fi
 
